@@ -1,6 +1,8 @@
 ```{r}
 library(tidyverse)
 library(scales)
+library(RColorBrewer)
+library(viridis)
 
 caption <- "Max Woolf — minimaxir.com"
 
@@ -22,25 +24,156 @@ theme_set(theme_minimal(base_size = 8, base_family = "Overpass") +
 ```
 
 ```{r}
-df <- read_csv("tip_trials.csv")
+df <- read_csv("tip_trials.csv") %>%
+  bind_rows(read_csv("tip_trials_adv.csv"))
 df %>% head()
 ```
 
 ```{r}
-plot <- ggplot(df, aes(output_len, fill = label)) +
+palette <- brewer.pal(7, "Set1")
+palette
+```
+
+## Base Distribution of Character Counts
+
+```{r}
+labels <- c(
+  "<no tip>" = palette[1]
+)
+
+df_subset <- df %>%
+  filter(label %in% names(labels)) %>%
+  mutate(label = factor(label, levels = names(labels)))
+
+plot <- ggplot(df_subset, aes(output_len, fill = label)) +
   geom_histogram(binwidth = 10) +
   scale_x_continuous(limits = c(0, 400)) +
   geom_vline(xintercept = 200, color = "#1a1a1a") +
-  scale_fill_brewer(palette = "Set1", guide = "none") +
+  scale_fill_manual(values = labels, guide = "none") +
+  labs(
+    title = "Character Lengths of ChatGPT Output Without Tip Incentive",
+    subtitle = "100 generations each, targeting 200 characters. gpt-3.5-turbo-0125, temperature = 1",
+    x = "Character Length of Generation", y = "# of Generations",
+    caption = caption
+  )
+
+ggsave("tips_hist_notip.png", plot, width = 4, height = 2)
+```
+
+```{r}
+labels <- c(
+  "$500 tip" = palette[2],
+  "$1,000 tip" = palette[3],
+  "$100,000 bonus" = palette[4]
+)
+
+df_subset <- df %>%
+  filter(label %in% names(labels)) %>%
+  mutate(label = factor(label, levels = names(labels)))
+
+plot <- ggplot(df_subset, aes(output_len, fill = label)) +
+  geom_histogram(binwidth = 10) +
+  scale_x_continuous(limits = c(0, 400)) +
+  geom_vline(xintercept = 200, color = "#1a1a1a") +
+  scale_fill_manual(values = labels, guide = "none") +
   labs(
     title = "Distribution of Character Lengths of ChatGPT Output by Tip Incentive",
     subtitle = "100 generations each, targeting 200 characters. gpt-3.5-turbo-0125, temperature = 1",
     x = "Character Length of Generation", y = "# of Generations",
     caption = caption
   ) +
-  facet_wrap(~label, nrow = 2)
+  facet_wrap(~label, nrow = 3)
 
-ggsave("tips_hist_pos.png", plot, width = 4, height = 3)
+ggsave("tips_hist_pos.png", plot, width = 4, height = 5)
 ```
 
-![](tips_hist_pos.png)
+```{r}
+labels <- c(
+  "$500 fine" = palette[5],
+  "$1,000 fine" = "gray",
+  "$100,000 debt" = palette[7]
+)
+
+df_subset <- df %>%
+  filter(label %in% names(labels)) %>%
+  mutate(label = factor(label, levels = names(labels)))
+
+plot <- ggplot(df_subset, aes(output_len, fill = label)) +
+  geom_histogram(binwidth = 10) +
+  scale_x_continuous(limits = c(0, 400)) +
+  geom_vline(xintercept = 200, color = "#1a1a1a") +
+  scale_fill_manual(values = labels, guide = "none") +
+  labs(
+    title = "Distribution of Character Lengths of ChatGPT Output by Tip Incentive",
+    subtitle = "100 generations each, targeting 200 characters. gpt-3.5-turbo-0125, temperature = 1",
+    x = "Character Length of Generation", y = "# of Generations",
+    caption = caption
+  ) +
+  facet_wrap(~label, nrow = 3)
+
+ggsave("tips_hist_neg.png", plot, width = 4, height = 5)
+```
+
+Advanced:
+
+```{r}
+temp_palette <- viridis(6, option = "viridis")
+labels <- c(
+  "Taylor Swift" = temp_palette[1],
+  "World Peace" = temp_palette[2],
+  "Mother" = temp_palette[3],
+  "Love" = temp_palette[4],
+  "Heaven" = temp_palette[5],
+  "Chocolate" = temp_palette[6]
+)
+
+df_subset <- df %>%
+  filter(label %in% names(labels)) %>%
+  mutate(label = factor(label, levels = names(labels)))
+
+plot <- ggplot(df_subset, aes(output_len, fill = label)) +
+  geom_histogram(binwidth = 10) +
+  scale_x_continuous(limits = c(0, 400)) +
+  geom_vline(xintercept = 200, color = "#1a1a1a") +
+  scale_fill_manual(values = labels, guide = "none") +
+  labs(
+    title = "Distribution of Character Lengths of ChatGPT Output by Tip Incentive",
+    subtitle = "100 generations each, targeting 200 characters. gpt-3.5-turbo-0125, temperature = 1",
+    x = "Character Length of Generation", y = "# of Generations",
+    caption = caption
+  ) +
+  facet_wrap(~label, nrow = 3)
+
+ggsave("tips_hist_pos_adv.png", plot, width = 4, height = 4)
+```
+
+```{r}
+temp_palette <- viridis(7, option = "plasma")
+labels <- c(
+  "Death (nocaps)" = temp_palette[1],
+  "DEATH (CAPS)" = temp_palette[2],
+  "COVID-19" = temp_palette[3],
+  "Weight" = temp_palette[4],
+  "Job" = temp_palette[5],
+  "Friends" = temp_palette[6]
+)
+
+df_subset <- df %>%
+  filter(label %in% names(labels)) %>%
+  mutate(label = factor(label, levels = names(labels)))
+
+plot <- ggplot(df_subset, aes(output_len, fill = label)) +
+  geom_histogram(binwidth = 10) +
+  scale_x_continuous(limits = c(0, 400)) +
+  geom_vline(xintercept = 200, color = "#1a1a1a") +
+  scale_fill_manual(values = labels, guide = "none") +
+  labs(
+    title = "Distribution of Character Lengths of ChatGPT Output by Tip Incentive",
+    subtitle = "100 generations each, targeting 200 characters. gpt-3.5-turbo-0125, temperature = 1",
+    x = "Character Length of Generation", y = "# of Generations",
+    caption = caption
+  ) +
+  facet_wrap(~label, nrow = 3)
+
+ggsave("tips_hist_neg_adv.png", plot, width = 4, height = 4)
+```
