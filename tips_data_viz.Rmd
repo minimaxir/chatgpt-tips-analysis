@@ -70,10 +70,11 @@ df_agg_subset <- df_agg %>%
 
 plot <- ggplot(df_subset, aes(output_len, fill = label)) +
   geom_histogram(binwidth = 10) +
-  geom_text(
-    data = df_agg_subset, mapping = aes(label = sprintf("x̄ = %s", avg), color = label, x = 0, y = Inf),
-    vjust = 2, hjust = 0,
-    fontface = "bold", family = "Overpass"
+  geom_label(
+    data = df_agg_subset, mapping = aes(label = sprintf("x̄ = %s\nσ = %s", round(avg), round(std)), color = label, x = 20, y = Inf),
+    vjust = 1.1, hjust = 0, fill = "white",
+    family = "Overpass",
+    size = 2, lineheight = 1.0, label.padding = unit(0.20, "lines"), label.size = 0.3,
   ) +
   scale_x_continuous(limits = c(0, 400)) +
   geom_vline(xintercept = 200, color = "#1a1a1a") +
@@ -100,11 +101,21 @@ df_subset <- df %>%
   filter(label %in% names(labels)) %>%
   mutate(label = factor(label, levels = names(labels)))
 
+df_agg_subset <- df_agg %>%
+  filter(label %in% names(labels))
+
 plot <- ggplot(df_subset, aes(output_len, fill = label)) +
   geom_histogram(binwidth = 10) +
+  geom_label(
+    data = df_agg_subset, mapping = aes(label = sprintf("x̄ = %s\nσ = %s\np = %s", round(avg), round(std), round(pval, 3)), color = label, x = 20, y = Inf),
+    vjust = 1.1, hjust = 0, fill = "white",
+    family = "Overpass",
+    size = 2, lineheight = 1.0, label.padding = unit(0.20, "lines"), label.size = 0.3,
+  ) +
   scale_x_continuous(limits = c(0, 400)) +
   geom_vline(xintercept = 200, color = "#1a1a1a") +
   scale_fill_manual(values = labels, guide = "none") +
+  scale_color_manual(values = labels, guide = "none") +
   labs(
     title = "Distribution of Character Lengths of ChatGPT Output by Tip Incentive",
     subtitle = "100 generations each, targeting 200 characters. gpt-3.5-turbo-0125, temperature = 1",
