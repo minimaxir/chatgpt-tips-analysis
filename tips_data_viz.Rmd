@@ -3,6 +3,7 @@ library(tidyverse)
 library(scales)
 library(RColorBrewer)
 library(viridis)
+library(moments)
 
 caption <- "Max Woolf — minimaxir.com"
 
@@ -30,6 +31,25 @@ df %>% head()
 ```
 
 ```{r}
+null_dist <- df %>%
+  filter(label == "<no tip>") %>%
+  pull(output_len)
+
+df_agg <- df %>%
+  mutate(label = factor(label)) %>%
+  group_by(label) %>%
+  summarize(
+    avg = mean(output_len),
+    std = sd(output_len),
+    pval = ks.test(output_len, null_dist)$p.value,
+    skew = skewness(output_len),
+    kurt = kurtosis(output_len)
+  )
+
+df_agg
+```
+
+```{r}
 palette <- brewer.pal(7, "Set1")
 palette
 ```
@@ -45,11 +65,20 @@ df_subset <- df %>%
   filter(label %in% names(labels)) %>%
   mutate(label = factor(label, levels = names(labels)))
 
+df_agg_subset <- df_agg %>%
+  filter(label %in% names(labels))
+
 plot <- ggplot(df_subset, aes(output_len, fill = label)) +
   geom_histogram(binwidth = 10) +
+  geom_text(
+    data = df_agg_subset, mapping = aes(label = sprintf("x̄ = %s", avg), color = label, x = 0, y = Inf),
+    vjust = 2, hjust = 0,
+    fontface = "bold", family = "Overpass"
+  ) +
   scale_x_continuous(limits = c(0, 400)) +
   geom_vline(xintercept = 200, color = "#1a1a1a") +
   scale_fill_manual(values = labels, guide = "none") +
+  scale_color_manual(values = labels, guide = "none") +
   labs(
     title = "Character Lengths of ChatGPT Output Without Tip Incentive",
     subtitle = "100 generations each, targeting 200 characters. gpt-3.5-turbo-0125, temperature = 1",
@@ -84,7 +113,7 @@ plot <- ggplot(df_subset, aes(output_len, fill = label)) +
   ) +
   facet_wrap(~label, nrow = 3)
 
-ggsave("tips_hist_pos.png", plot, width = 4, height = 5)
+ggsave("tips_hist_pos.png", plot, width = 4, height = 4)
 ```
 
 ```{r}
@@ -111,7 +140,7 @@ plot <- ggplot(df_subset, aes(output_len, fill = label)) +
   ) +
   facet_wrap(~label, nrow = 3)
 
-ggsave("tips_hist_neg.png", plot, width = 4, height = 5)
+ggsave("tips_hist_neg.png", plot, width = 4, height = 4)
 ```
 
 Advanced:
