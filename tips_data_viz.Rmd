@@ -327,7 +327,7 @@ plot <- ggplot(df_combos_agg, aes(x = label_pos, y = label_neg, fill = mse)) +
   geom_raster(stat = "identity", interpolate = FALSE) +
   scale_x_discrete() +
   scale_y_discrete() +
-  scale_fill_viridis_c(option = "inferno", end = 0.8)) +
+  scale_fill_viridis_c(option = "inferno", end = 0.8) +
   labs(
     title = "Accuracy of ChatGPT Output by Tip/Threat Incentives",
     subtitle = "Targeting 200 characters. gpt-3.5-turbo-0125, temperature = 1",
@@ -363,31 +363,41 @@ best_combos
 ```
 
 ```{r}
-df_combo_subset <- df_combos %>%
-  left_join(best_combos) %>%
-  filter(!is.na(mse)) %>%
+df_combos_top <- read_csv("tips_top6.csv") %>%
+  mutate(label = paste0(label_pos, " / ", label_neg))
+df_combos_top %>% head()
+```
+
+```{r}
+df_combo_subset <- df_combos_top %>%
   mutate(
     label = factor(label, levels = label_order),
-    label_pos = factor(label_pos, levels = pos_labels),
-    label_neg = factor(label_neg, levels = neg_labels)
+  )
+
+df_combos_top_agg <- df_combo_subset %>%
+  group_by(label) %>%
+  summarize(
+    avg = mean(output_len),
+    std = sd(output_len),
+    mse = mean((output_len - 200)^2),
   )
 
 plot <- ggplot(df_combo_subset, aes(output_len, fill = label)) +
   geom_histogram(binwidth = 10) +
   geom_label(
-    data = best_combos, mapping = aes(label = sprintf("x̄ = %s\nMSE = %s", round(avg), round(mse)), color = label, x = 20, y = Inf),
+    data = df_combos_top_agg, mapping = aes(label = sprintf("x̄ = %s\nMSE = %s", round(avg), round(mse)), color = label, x = 20, y = Inf),
     vjust = 1.1, hjust = 0, fill = "white",
     family = "Overpass",
     size = 2, lineheight = 1.0, label.padding = unit(0.10, "cm"), label.size = 0.3,
   ) +
   scale_x_continuous(limits = c(0, 400)) +
-  scale_y_continuous(breaks = seq(0, 14, 2)) +
+  # scale_y_continuous(breaks = seq(0, 14, 2)) +
   geom_vline(xintercept = 200, color = "#1a1a1a") +
   scale_fill_viridis_d(option = "inferno", guide = "none", end = 0.8) +
   scale_color_viridis_d(option = "inferno", guide = "none", end = 0.8) +
   labs(
     title = "Distribution of Character Lengths of ChatGPT Output by Tip Incentive",
-    subtitle = "30 generations each, targeting 200 characters. gpt-3.5-turbo-0125, temperature = 1",
+    subtitle = "200 generations each, targeting 200 characters. gpt-3.5-turbo-0125, temperature = 1",
     x = "Character Length of Generation", y = "# of Generations",
     caption = caption
   ) +
@@ -413,7 +423,7 @@ plot <- ggplot(df_gpt4, aes(x = label_pos, y = label_neg, fill = quality_prob * 
   geom_text(aes(label = round(quality_prob * 100)), family = "Overpass Mono", color = "white", fontface = "bold") +
   scale_x_discrete() +
   scale_y_discrete() +
-  scale_fill_viridis_c(option = "magma", end = 0.8) +
+  scale_fill_viridis_c(option = "magma", end = 0.8, limits = c(0, 100)) +
   labs(
     title = "Quality of ChatGPT Output by Tip/Threat Incentives",
     subtitle = "Targeting 200 characters. gpt-4-0125-preview, temperature = 0",
