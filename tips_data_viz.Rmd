@@ -41,6 +41,7 @@ df_agg <- df %>%
   summarize(
     avg = mean(output_len),
     std = sd(output_len),
+    mse = mean((output_len - 200)^2),
     pval = ks.test(output_len, null_dist)$p.value,
     skew = skewness(output_len),
     kurt = kurtosis(output_len)
@@ -71,7 +72,7 @@ df_agg_subset <- df_agg %>%
 plot <- ggplot(df_subset, aes(output_len, fill = label)) +
   geom_histogram(binwidth = 10) +
   geom_label(
-    data = df_agg_subset, mapping = aes(label = sprintf("x̄ = %s\nσ = %s", round(avg), round(std)), color = label, x = 20, y = Inf),
+    data = df_agg_subset, mapping = aes(label = sprintf("x̄ = %s\nMSE = %s", round(avg), round(mse)), color = label, x = 20, y = Inf),
     vjust = 1.1, hjust = 0, fill = "white",
     family = "Overpass",
     size = 2, lineheight = 1.0, label.padding = unit(0.10, "cm"), label.size = 0.3,
@@ -107,7 +108,7 @@ df_agg_subset <- df_agg %>%
 plot <- ggplot(df_subset, aes(output_len, fill = label)) +
   geom_histogram(binwidth = 10) +
   geom_label(
-    data = df_agg_subset, mapping = aes(label = sprintf("x̄ = %s\nσ = %s\np = %s", round(avg), round(std), round(pval, 3)), color = label, x = 20, y = Inf),
+    data = df_agg_subset, mapping = aes(label = sprintf("x̄ = %s\nMSE = %s\np = %s", round(avg), round(mse), round(pval, 3)), color = label, x = 20, y = Inf),
     vjust = 1.1, hjust = 0, fill = "white",
     family = "Overpass",
     size = 2, lineheight = 1.0, label.padding = unit(0.10, "cm"), label.size = 0.3,
@@ -144,7 +145,7 @@ df_agg_subset <- df_agg %>%
 plot <- ggplot(df_subset, aes(output_len, fill = label)) +
   geom_histogram(binwidth = 10) +
   geom_label(
-    data = df_agg_subset, mapping = aes(label = sprintf("x̄ = %s\nσ = %s\np = %s", round(avg), round(std), round(pval, 3)), color = label, x = 20, y = Inf),
+    data = df_agg_subset, mapping = aes(label = sprintf("x̄ = %s\nMSE = %s\np = %s", round(avg), round(mse), round(pval, 3)), color = label, x = 20, y = Inf),
     vjust = 1.1, hjust = 0, fill = "white",
     family = "Overpass",
     size = 2, lineheight = 1.0, label.padding = unit(0.10, "cm"), label.size = 0.3,
@@ -187,7 +188,7 @@ df_agg_subset <- df_agg %>%
 plot <- ggplot(df_subset, aes(output_len, fill = label)) +
   geom_histogram(binwidth = 10) +
   geom_label(
-    data = df_agg_subset, mapping = aes(label = sprintf("x̄ = %s\nσ = %s\np = %s", round(avg), round(std), round(pval, 3)), color = label, x = 20, y = Inf),
+    data = df_agg_subset, mapping = aes(label = sprintf("x̄ = %s\nMSE = %s\np = %s", round(avg), round(mse), round(pval, 3)), color = label, x = 20, y = Inf),
     vjust = 1.1, hjust = 0, fill = "white",
     family = "Overpass",
     size = 2, lineheight = 1.0, label.padding = unit(0.10, "cm"), label.size = 0.3,
@@ -228,7 +229,7 @@ df_agg_subset <- df_agg %>%
 plot <- ggplot(df_subset, aes(output_len, fill = label)) +
   geom_histogram(binwidth = 10) +
   geom_label(
-    data = df_agg_subset, mapping = aes(label = sprintf("x̄ = %s\nσ = %s\np = %s", round(avg), round(std), round(pval, 3)), color = label, x = 20, y = Inf),
+    data = df_agg_subset, mapping = aes(label = sprintf("x̄ = %s\nMSE = %s\np = %s", round(avg), round(mse), round(pval, 3)), color = label, x = 20, y = Inf),
     vjust = 1.1, hjust = 0, fill = "white",
     family = "Overpass",
     size = 2, lineheight = 1.0, label.padding = unit(0.10, "cm"), label.size = 0.3,
@@ -246,4 +247,103 @@ plot <- ggplot(df_subset, aes(output_len, fill = label)) +
   facet_wrap(~label, nrow = 3)
 
 ggsave("tips_hist_neg_adv.png", plot, width = 4, height = 4)
+```
+
+## Combos
+
+```{r}
+df_combos <- read_csv("tips_trial_combos.csv")
+df_combos %>% head()
+```
+
+```{r}
+pos_labels <- c(
+  "<no tip>",
+  "$500 tip",
+  "$1,000 tip",
+  "$100,000 bonus",
+  "Taylor Swift",
+  "World Peace",
+  "Mother",
+  "Love",
+  "Heaven",
+  "Chocolate"
+)
+
+neg_labels <- c(
+  "<no tip>",
+  "$500 fine",
+  "$1,000 fine",
+  "$100,000 debt",
+  "Death (nocaps)",
+  "DEATH (CAPS)",
+  "COVID-19",
+  "Weight",
+  "Job",
+  "Friends"
+)
+```
+
+```{r}
+df_combos_agg <- df_combos %>%
+  mutate(label_pos = factor(label_pos), label_neg = factor(label_neg)) %>%
+  group_by(label_pos, label_neg) %>%
+  summarize(
+    avg = mean(output_len),
+    std = sd(output_len),
+    mse = mean((output_len - 200)^2),
+  )
+
+df_combos_agg %>% head()
+```
+
+Convert the old aggregation tables to be compatable with the combo table.
+
+```{r}
+df_agg_subset_pos <- df_agg %>%
+  filter(label %in% pos_labels) %>%
+  mutate(label_neg = "<no tip>") %>%
+  select(label_pos = label, label_neg, avg, std, mse)
+
+df_agg_subset_neg <- df_agg %>%
+  filter(label %in% neg_labels[-1]) %>%
+  mutate(label_pos = "<no tip>") %>%
+  select(label_pos, label_neg = label, avg, std, mse)
+
+df_combos_agg <- df_combos_agg %>%
+  bind_rows(df_agg_subset_pos) %>%
+  bind_rows(df_agg_subset_neg) %>%
+  mutate(
+    label_pos = factor(label_pos, levels = pos_labels),
+    label_neg = factor(label_neg, levels = neg_labels)
+  )
+
+
+df_combos_agg %>% nrow()
+```
+
+```{r}
+plot <- ggplot(df_combos_agg, aes(x = label_pos, y = label_neg, fill = mse)) +
+  geom_raster(stat = "identity", interpolate = FALSE) +
+  scale_x_discrete() +
+  scale_y_discrete() +
+  scale_fill_viridis_c(option = "inferno") +
+  labs(
+    title = "Accuracy of ChatGPT Output by Tip/Threat Incentives",
+    subtitle = "Targeting 200 characters. gpt-3.5-turbo-0125, temperature = 1",
+    x = "Positive Incentives", y = "Negative Incentives", fill = "Mean Square Error\n(lower is better)",
+    caption = caption
+  ) +
+  theme(
+    legend.position = "top",
+    legend.title = element_text(size = 6),
+    legend.text = element_text(size = 5, margin = margin(c(0.0, 0.5, 0.0, 0.), unit = "cm")),
+    legend.key.width = unit(0.75, unit = "cm"),
+    legend.key.height = unit(0.25, unit = "cm"),
+    legend.margin = margin(c(0.0, 0.5, -0.1, 0.4), unit = "cm"),
+    axis.text.x = element_text(size = 6, angle = -45, vjust = -1),
+    axis.text.y = element_text(size = 6),
+  )
+
+ggsave("tips_tile_mse.png", plot, width = 4, height = 4)
 ```
