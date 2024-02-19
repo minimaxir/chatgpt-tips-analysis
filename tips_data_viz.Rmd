@@ -327,7 +327,7 @@ plot <- ggplot(df_combos_agg, aes(x = label_pos, y = label_neg, fill = mse)) +
   geom_raster(stat = "identity", interpolate = FALSE) +
   scale_x_discrete() +
   scale_y_discrete() +
-  scale_fill_viridis_c(option = "inferno") +
+  scale_fill_viridis_c(option = "inferno", end = 0.8)) +
   labs(
     title = "Accuracy of ChatGPT Output by Tip/Threat Incentives",
     subtitle = "Targeting 200 characters. gpt-3.5-turbo-0125, temperature = 1",
@@ -394,4 +394,42 @@ plot <- ggplot(df_combo_subset, aes(output_len, fill = label)) +
   facet_wrap(~label, nrow = 3)
 
 ggsave("tips_hist_combos.png", plot, width = 4, height = 4)
+```
+
+## GPT-4
+
+```{r}
+df_gpt4 <- read_csv("tip_gpt4.csv") %>%
+  mutate(
+    label_pos = factor(label_pos, levels = pos_labels),
+    label_neg = factor(label_neg, levels = neg_labels)
+  )
+df_gpt4 %>% head()
+```
+
+```{r}
+plot <- ggplot(df_gpt4, aes(x = label_pos, y = label_neg, fill = quality_prob * 100)) +
+  geom_raster(stat = "identity", interpolate = FALSE) +
+  geom_text(aes(label = round(quality_prob * 100)), family = "Overpass Mono", color = "white", fontface = "bold") +
+  scale_x_discrete() +
+  scale_y_discrete() +
+  scale_fill_viridis_c(option = "magma", end = 0.8) +
+  labs(
+    title = "Quality of ChatGPT Output by Tip/Threat Incentives",
+    subtitle = "Targeting 200 characters. gpt-4-0125-preview, temperature = 0",
+    x = "Positive Incentives", y = "Negative Incentives", fill = "Quality Score\n(higher is better)",
+    caption = caption
+  ) +
+  theme(
+    legend.position = "top",
+    legend.title = element_text(size = 6),
+    legend.text = element_text(size = 5, margin = margin(c(0.0, 0.5, 0.0, 0.), unit = "cm")),
+    legend.key.width = unit(0.75, unit = "cm"),
+    legend.key.height = unit(0.25, unit = "cm"),
+    legend.margin = margin(c(0.0, 0.5, -0.1, 0.4), unit = "cm"),
+    axis.text.x = element_text(size = 6, angle = -45, vjust = -1, color = "#1a1a1a", face = "plain"),
+    axis.text.y = element_text(size = 6, color = "#1a1a1a", face = "plain"),
+  )
+
+ggsave("tips_tile_gpt-4.png", plot, width = 4, height = 4)
 ```
