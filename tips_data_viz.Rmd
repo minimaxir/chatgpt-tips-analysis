@@ -92,6 +92,31 @@ ggsave("tips_hist_notip.png", plot, width = 4, height = 2)
 ```
 
 ```{r}
+df_base <- read_csv("tip_noconstraints.csv")
+
+plot <- ggplot(df_base, aes(output_len, fill = label)) +
+  geom_histogram() +
+  geom_label(
+    data = df_agg_subset, mapping = aes(label = sprintf("x̄ = %s", round(mean(df_base$output_len))), color = label, x = 1000, y = Inf),
+    vjust = 1.1, hjust = 0, fill = "white",
+    family = "Overpass",
+    size = 2, lineheight = 1.0, label.padding = unit(0.10, "cm"), label.size = 0.3,
+  ) +
+  scale_x_continuous(labels = label_comma()) +
+  # geom_vline(xintercept = 200, color = "#1a1a1a") +
+  scale_fill_manual(values = labels, guide = "none") +
+  scale_color_manual(values = labels, guide = "none") +
+  labs(
+    title = "Distribution of Character Lengths of Normal ChatGPT Output",
+    subtitle = "100 generations each. gpt-3.5-turbo-0125, temperature = 1",
+    x = "Character Length of Generation", y = "# of Generations",
+    caption = caption
+  )
+
+ggsave("tips_hist_notip_noconstraint.png", plot, width = 4, height = 2)
+```
+
+```{r}
 labels <- c(
   "$500 tip" = palette[2],
   "$1,000 tip" = palette[3],
