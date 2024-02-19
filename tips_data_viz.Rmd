@@ -341,9 +341,57 @@ plot <- ggplot(df_combos_agg, aes(x = label_pos, y = label_neg, fill = mse)) +
     legend.key.width = unit(0.75, unit = "cm"),
     legend.key.height = unit(0.25, unit = "cm"),
     legend.margin = margin(c(0.0, 0.5, -0.1, 0.4), unit = "cm"),
-    axis.text.x = element_text(size = 6, angle = -45, vjust = -1),
-    axis.text.y = element_text(size = 6),
+    axis.text.x = element_text(size = 6, angle = -45, vjust = -1, color = "#1a1a1a", face = "plain"),
+    axis.text.y = element_text(size = 6, color = "#1a1a1a", face = "plain"),
   )
 
 ggsave("tips_tile_mse.png", plot, width = 4, height = 4)
+```
+
+```{r}
+best_combos <- df_combos_agg %>%
+  arrange(mse) %>%
+  head() %>%
+  mutate(label = paste0(label_pos, " / ", label_neg))
+
+label_order <- best_combos$label
+
+best_combos <- best_combos %>%
+  mutate(label = factor(label, levels = label_order))
+
+best_combos
+```
+
+```{r}
+df_combo_subset <- df_combos %>%
+  left_join(best_combos) %>%
+  filter(!is.na(mse)) %>%
+  mutate(
+    label = factor(label, levels = label_order),
+    label_pos = factor(label_pos, levels = pos_labels),
+    label_neg = factor(label_neg, levels = neg_labels)
+  )
+
+plot <- ggplot(df_combo_subset, aes(output_len, fill = label)) +
+  geom_histogram(binwidth = 10) +
+  geom_label(
+    data = best_combos, mapping = aes(label = sprintf("x̄ = %s\nMSE = %s", round(avg), round(mse)), color = label, x = 20, y = Inf),
+    vjust = 1.1, hjust = 0, fill = "white",
+    family = "Overpass",
+    size = 2, lineheight = 1.0, label.padding = unit(0.10, "cm"), label.size = 0.3,
+  ) +
+  scale_x_continuous(limits = c(0, 400)) +
+  scale_y_continuous(breaks = seq(0, 14, 2)) +
+  geom_vline(xintercept = 200, color = "#1a1a1a") +
+  scale_fill_viridis_d(option = "inferno", guide = "none", end = 0.8) +
+  scale_color_viridis_d(option = "inferno", guide = "none", end = 0.8) +
+  labs(
+    title = "Distribution of Character Lengths of ChatGPT Output by Tip Incentive",
+    subtitle = "30 generations each, targeting 200 characters. gpt-3.5-turbo-0125, temperature = 1",
+    x = "Character Length of Generation", y = "# of Generations",
+    caption = caption
+  ) +
+  facet_wrap(~label, nrow = 3)
+
+ggsave("tips_hist_combos.png", plot, width = 4, height = 4)
 ```
