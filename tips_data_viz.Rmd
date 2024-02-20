@@ -17,7 +17,7 @@ theme_set(theme_minimal(base_size = 8, base_family = "Overpass") +
     axis.title.x = element_text(size = 6),
     axis.title.y = element_text(size = 6),
     plot.caption = element_text(size = 5, color = "#969696"),
-    plot.background = element_rect(fill = "#FFFFFF"),
+    plot.background = element_rect(fill = "#FFFFFF", color = "#FFFFFF"),
     legend.title = element_text(size = 8),
     legend.key.width = unit(0.25, unit = "cm"),
     panel.grid.minor = element_blank()
@@ -83,7 +83,7 @@ plot <- ggplot(df_subset, aes(output_len, fill = label)) +
   scale_color_manual(values = labels, guide = "none") +
   labs(
     title = "Character Lengths of ChatGPT Output Without Tip Incentive",
-    subtitle = "100 generations each, targeting 200 characters. gpt-3.5-turbo-0125, temperature = 1",
+    subtitle = "100 generations targeting 200 characters. gpt-3.5-turbo-0125, temperature = 1",
     x = "Character Length of Generation", y = "# of Generations",
     caption = caption
   )
@@ -107,8 +107,8 @@ plot <- ggplot(df_base, aes(output_len, fill = label)) +
   scale_fill_manual(values = labels, guide = "none") +
   scale_color_manual(values = labels, guide = "none") +
   labs(
-    title = "Distribution of Character Lengths of Normal ChatGPT Output",
-    subtitle = "100 generations each. gpt-3.5-turbo-0125, temperature = 1",
+    title = "Distribution of Character Lengths of ChatGPT Story Output",
+    subtitle = "100 generations. gpt-3.5-turbo-0125, temperature = 1",
     x = "Character Length of Generation", y = "# of Generations",
     caption = caption
   )
