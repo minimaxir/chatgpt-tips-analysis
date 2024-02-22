@@ -451,8 +451,8 @@ plot <- ggplot(df_gpt4, aes(x = label_pos, y = label_neg, fill = quality_prob * 
   scale_y_discrete() +
   scale_fill_viridis_c(option = "magma", end = 0.8, limits = c(0, 100)) +
   labs(
-    title = "Quality of ChatGPT Output by Tip/Threat Incentives",
-    subtitle = "Targeting 200 characters. gpt-4-0125-preview, temperature = 0",
+    title = "Quality of GPT-4 Output by Tip/Threat Incentives",
+    subtitle = "gpt-4-0125-preview, temperature = 0",
     x = "Positive Incentives", y = "Negative Incentives", fill = "Quality Score\n(higher is better)",
     caption = caption
   ) +
