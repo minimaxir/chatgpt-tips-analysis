@@ -356,7 +356,7 @@ plot <- ggplot(df_combos_agg, aes(x = label_pos, y = label_neg, fill = mse)) +
   labs(
     title = "Accuracy of ChatGPT Output by Tip/Threat Incentives",
     subtitle = "Targeting 200 characters. gpt-3.5-turbo-0125, temperature = 1",
-    x = "Positive Incentives", y = "Negative Incentives", fill = "Mean Square Error\n(lower is better)",
+    x = "Positive Incentives", y = "Negative Incentives", fill = "Mean Squared Error\n(lower is better)",
     caption = caption
   ) +
   theme(
@@ -405,12 +405,13 @@ df_combos_top_agg <- df_combo_subset %>%
     avg = mean(output_len),
     std = sd(output_len),
     mse = mean((output_len - 200)^2),
+    pval = ks.test(output_len, null_dist)$p.value,
   )
 
 plot <- ggplot(df_combo_subset, aes(output_len, fill = label)) +
   geom_histogram(binwidth = 10) +
   geom_label(
-    data = df_combos_top_agg, mapping = aes(label = sprintf("x̄ = %s\nMSE = %s", round(avg), round(mse)), color = label, x = 20, y = Inf),
+    data = df_combos_top_agg, mapping = aes(label = sprintf("x̄ = %s\nMSE = %s\np = %s", round(avg), round(mse), round(pval, 3)), color = label, x = 20, y = Inf),
     vjust = 1.1, hjust = 0, fill = "white",
     family = "Overpass",
     size = 2, lineheight = 1.0, label.padding = unit(0.10, "cm"), label.size = 0.3,
